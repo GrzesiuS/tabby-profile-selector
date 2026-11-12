@@ -1,0 +1,75 @@
+.ps-settings {
+    max-width: 860px;
+
+    .ps-section-card {
+        padding: 1.15rem 1.3rem;
+        border-radius: 16px;
+        border: 1px solid rgba(128, 128, 128, 0.18);
+        background: rgba(128, 128, 128, 0.05);
+        margin-bottom: 1.25rem;
+    }
+
+    .ps-profile-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .ps-profile-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.65rem 0.9rem;
+        border-radius: 14px;
+        border: 1px solid var(--ps-card-border, rgba(128, 128, 128, 0.2));
+        background: var(--ps-card-bg, rgba(128, 128, 128, 0.07));
+        transition: all 0.16s ease;
+
+        &:hover {
+            border-color: var(--ps-card-border-hover, rgba(128, 128, 128, 0.38));
+        }
+    }
+
+    .ps-row-icon {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ps-icon-bg, rgba(128, 128, 128, 0.16));
+        color: var(--ps-icon-fg, currentColor);
+        padding: 8px;
+        font-size: 1rem;
+
+        ::ng-deep svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        ::ng-deep img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .ps-group-pill {
+        font-size: 0.74rem;
+        padding: 0.18rem 0.55rem;
+        border-radius: 999px;
+        background: rgba(128, 128, 128, 0.16);
+        opacity: 0.85;
+    }
+
+    .ps-empty-hint {
+        text-align: center;
+        padding: 1.75rem 1rem;
+        border-radius: 14px;
+        border: 1px dashed rgba(128, 128, 128, 0.28);
+        opacity: 0.85;
+    }
+}

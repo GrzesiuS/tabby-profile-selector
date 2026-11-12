@@ -1,0 +1,272 @@
+.ps-modal {
+    color: inherit;
+
+    .ps-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.1rem 1.4rem;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+
+        h4 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+    }
+
+    .ps-close-btn {
+        background: transparent;
+        border: none;
+        color: inherit;
+        opacity: 0.65;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.15s ease, opacity 0.15s ease;
+
+        &:hover {
+            opacity: 1;
+            background: rgba(128, 128, 128, 0.16);
+        }
+    }
+
+    .ps-modal-body {
+        padding: 1.25rem 1.4rem;
+        max-height: 74vh;
+        overflow-y: auto;
+    }
+
+    .ps-preview-stage {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.15rem;
+        border-radius: 16px;
+        background: rgba(128, 128, 128, 0.06);
+        border: 1px solid rgba(128, 128, 128, 0.15);
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+    }
+
+    .ps-preview-card {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        min-width: 240px;
+        max-width: 320px;
+        padding: 0.75rem 0.95rem;
+        border-radius: 16px;
+        border: 1px solid var(--ps-card-border, rgba(128, 128, 128, 0.22));
+        background: var(--ps-card-bg, rgba(128, 128, 128, 0.08));
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .ps-preview-icon {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ps-icon-bg, rgba(128, 128, 128, 0.16));
+        color: var(--ps-icon-fg, currentColor);
+        font-size: 1.2rem;
+        padding: 9px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
+
+        ::ng-deep svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        ::ng-deep img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .ps-preview-title {
+        font-size: 0.96rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ps-field-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        opacity: 0.75;
+        margin-bottom: 0.4rem;
+    }
+
+    .ps-tabs {
+        display: inline-flex;
+        gap: 0.25rem;
+        padding: 0.25rem;
+        border-radius: 12px;
+        background: rgba(128, 128, 128, 0.12);
+        margin-bottom: 0.85rem;
+
+        button {
+            border: none;
+            background: transparent;
+            color: inherit;
+            opacity: 0.75;
+            padding: 0.4rem 0.85rem;
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+
+            &.active {
+                opacity: 1;
+                background: rgba(128, 128, 128, 0.24);
+                font-weight: 600;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+            }
+
+            &:hover:not(.active) {
+                opacity: 0.95;
+            }
+        }
+    }
+
+    .ps-icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+        gap: 0.5rem;
+        max-height: 220px;
+        overflow-y: auto;
+        padding: 0.35rem;
+        border-radius: 12px;
+        border: 1px solid rgba(128, 128, 128, 0.16);
+        background: rgba(128, 128, 128, 0.04);
+    }
+
+    .ps-icon-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.55rem 0.35rem;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+
+        &:hover {
+            background: rgba(128, 128, 128, 0.14);
+        }
+
+        &.selected {
+            border-color: var(--theme-primary, #3b82f6);
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .ps-icon-glyph {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+
+            ::ng-deep svg {
+                width: 22px;
+                height: 22px;
+                fill: currentColor;
+            }
+        }
+
+        .ps-icon-caption {
+            font-size: 0.68rem;
+            opacity: 0.8;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .ps-color-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .ps-color-native {
+        width: 42px;
+        height: 38px;
+        padding: 2px;
+        border-radius: 10px;
+        border: 1px solid rgba(128, 128, 128, 0.3);
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .ps-swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.42rem;
+        margin-top: 0.6rem;
+    }
+
+    .ps-swatch {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.22);
+        cursor: pointer;
+        padding: 0;
+        transition: transform 0.14s ease, box-shadow 0.14s ease;
+
+        &:hover {
+            transform: scale(1.14);
+        }
+
+        &.active {
+            transform: scale(1.16);
+            box-shadow: 0 0 0 2px var(--theme-primary, #ffffff);
+        }
+    }
+
+    .ps-auto-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.76rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        margin-top: 0.45rem;
+    }
+
+    .ps-modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.95rem 1.4rem;
+        border-top: 1px solid rgba(128, 128, 128, 0.18);
+        gap: 0.75rem;
+    }
+}

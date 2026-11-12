@@ -6,6 +6,9 @@ module.exports = {
     // devtool: 'source-map',
     context: __dirname,
     mode: 'production',
+    optimization: {
+        minimize: false,
+    },
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'index.js',
@@ -27,8 +30,8 @@ module.exports = {
                 },
             },
             {
-                test: /\.scss/,
-                use: ["to-string-loader", "style-loader", "css-loader", "sass-loader"],
+                test: /\.scss$/,
+                use: ['to-string-loader', 'css-loader', 'sass-loader'],
             },
             {
                 test: /\.html$/,

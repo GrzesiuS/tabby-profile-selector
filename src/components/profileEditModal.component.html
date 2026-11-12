@@ -1,0 +1,231 @@
+<div class="ps-modal">
+    <div class="ps-modal-header">
+        <h4>{{ mode === 'create' ? 'Nowy profil' : 'Edytuj profil' }}</h4>
+        <button type="button" class="ps-close-btn" (click)="cancel()" title="Zamknij">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="ps-modal-body">
+        <!-- Live Material Design Card Preview -->
+        <div class="ps-preview-stage">
+            <div>
+                <div class="ps-field-label mb-1">Podgląd kafelka</div>
+                <div class="small opacity-75">Wyświetlana jest wyłącznie ikona, nazwa i kolor profilu</div>
+            </div>
+            <div
+                class="ps-preview-card"
+                [style.--ps-card-bg]="previewPalette.cardBg"
+                [style.--ps-card-border]="previewPalette.cardBorder"
+                [style.--ps-icon-bg]="previewPalette.iconBg"
+                [style.--ps-icon-fg]="previewPalette.iconFg"
+            >
+                <div class="ps-preview-icon" [fastHtmlBind]="previewIconHtml"></div>
+                <div class="ps-preview-title">{{ draftName.trim() || 'Nazwa profilu' }}</div>
+            </div>
+        </div>
+
+        <!-- Base Built-in Profile Selector (Create mode) -->
+        <div class="mb-3" *ngIf="mode === 'create'">
+            <label class="ps-field-label">Profil bazowy (Built-in)</label>
+            <select
+                class="form-control"
+                [ngModel]="selectedBaseIndex"
+                (ngModelChange)="onBaseProfileChange($event)"
+            >
+                <option *ngFor="let bp of availableBaseProfiles; let idx = index" [ngValue]="idx">
+                    {{ bp.label }}
+                </option>
+            </select>
+        </div>
+
+        <!-- Name & Group -->
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6">
+                <label class="ps-field-label">Nazwa profilu</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    placeholder="np. Ubuntu Prod, PowerShell 7..."
+                    [(ngModel)]="draftName"
+                    (ngModelChange)="onNameInput()"
+                />
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="ps-field-label">Grupa</label>
+                <select class="form-control" [(ngModel)]="selectedGroupId">
+                    <option value="">Bez grupy (Ungrouped)</option>
+                    <option *ngFor="let g of existingGroups" [value]="g.id">{{ g.name }}</option>
+                    <option value="__new__">+ Utwórz nową grupę...</option>
+                </select>
+                <input
+                    *ngIf="selectedGroupId === '__new__'"
+                    type="text"
+                    class="form-control mt-2"
+                    placeholder="Nazwa nowej grupy..."
+                    [(ngModel)]="newGroupName"
+                />
+            </div>
+        </div>
+
+        <!-- Icon Source Tabs -->
+        <div class="mb-3">
+            <label class="ps-field-label">Ikona profilu</label>
+            <div class="ps-tabs">
+                <button type="button" [class.active]="iconTab === 'simple'" (click)="setIconTab('simple')">
+                    <i class="fas fa-shapes me-1"></i> Simple Icons
+                </button>
+                <button type="button" [class.active]="iconTab === 'svg'" (click)="setIconTab('svg')">
+                    <i class="fas fa-bezier-curve me-1"></i> Własne SVG
+                </button>
+                <button type="button" [class.active]="iconTab === 'fa'" (click)="setIconTab('fa')">
+                    <i class="fas fa-icons me-1"></i> FontAwesome
+                </button>
+            </div>
+
+            <!-- Tab 1: Simple Icons -->
+            <div *ngIf="iconTab === 'simple'">
+                <input
+                    type="text"
+                    class="form-control mb-2"
+                    placeholder="Szukaj w Simple Icons (np. ubuntu, docker, powershell, git, linux)..."
+                    [(ngModel)]="simpleIconQuery"
+                    (ngModelChange)="updateSimpleIconResults()"
+                />
+                <div class="ps-icon-grid">
+                    <button
+                        type="button"
+                        class="ps-icon-tile"
+                        *ngFor="let item of filteredSimpleIcons"
+                        [class.selected]="selectedSimpleSlug === item.slug"
+                        (click)="selectSimpleIcon(item)"
+                        [title]="item.title"
+                    >
+                        <span class="ps-icon-glyph" [fastHtmlBind]="getSimpleIconPreviewSvg(item)"></span>
+                        <span class="ps-icon-caption">{{ item.title }}</span>
+                    </button>
+                </div>
+                <div class="small opacity-75 mt-1" *ngIf="filteredSimpleIcons.length === 0">
+                    Brak pasujących ikon dla zapytania „{{ simpleIconQuery }}”.
+                </div>
+            </div>
+
+            <!-- Tab 2: Custom SVG -->
+            <div *ngIf="iconTab === 'svg'">
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <label class="btn btn-sm btn-outline-secondary mb-0">
+                        <i class="fas fa-upload me-1"></i> Wgraj plik .svg
+                        <input type="file" accept=".svg,image/svg+xml" hidden (change)="onSvgFileSelected($event)" />
+                    </label>
+                    <span class="small opacity-75">
+                        Jeśli dodasz kolorową ikonę SVG, kolor profilu zostanie wstępnie wygenerowany automatycznie.
+                    </span>
+                </div>
+                <textarea
+                    class="form-control font-monospace small"
+                    rows="4"
+                    placeholder="Wklej kod <svg ...>...</svg>"
+                    [(ngModel)]="customSvgInput"
+                    (ngModelChange)="onCustomSvgChange($event)"
+                ></textarea>
+                <div class="text-danger small mt-1" *ngIf="svgError">{{ svgError }}</div>
+                <div class="ps-auto-badge" *ngIf="autoColorNotice">
+                    <i class="fas fa-magic"></i>
+                    <span>Wstępnie wygenerowano kolor z SVG ({{ autoColorNotice }}) — możesz go dowolnie zmienić poniżej.</span>
+                </div>
+            </div>
+
+            <!-- Tab 3: FontAwesome -->
+            <div *ngIf="iconTab === 'fa'">
+                <input
+                    type="text"
+                    class="form-control mb-2"
+                    placeholder="np. fas fa-terminal, fas fa-server, fab fa-linux"
+                    [(ngModel)]="faIconInput"
+                    (ngModelChange)="onFaIconChange($event)"
+                />
+                <div class="ps-icon-grid">
+                    <button
+                        type="button"
+                        class="ps-icon-tile"
+                        *ngFor="let fa of popularFaIcons"
+                        [class.selected]="draftIcon === fa.icon"
+                        (click)="selectFaIcon(fa.icon)"
+                    >
+                        <span class="ps-icon-glyph"><i [class]="fa.icon"></i></span>
+                        <span class="ps-icon-caption">{{ fa.label }}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Selection (Always Customizable) -->
+        <div class="mb-2">
+            <label class="ps-field-label">Kolor profilu</label>
+            <div class="ps-color-row">
+                <input
+                    type="color"
+                    class="ps-color-native"
+                    [ngModel]="colorPickerHex"
+                    (ngModelChange)="onUserColorPick($event)"
+                    title="Wybierz dowolny kolor"
+                />
+                <input
+                    type="text"
+                    class="form-control"
+                    style="max-width: 150px;"
+                    placeholder="#2563eb lub brak"
+                    [(ngModel)]="draftColor"
+                    (ngModelChange)="onManualColorInput()"
+                />
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    *ngIf="draftColor"
+                    (click)="clearColor()"
+                >
+                    Domyślny (motyw)
+                </button>
+            </div>
+
+            <div class="ps-swatches">
+                <button
+                    type="button"
+                    class="ps-swatch"
+                    *ngFor="let preset of colorPresets"
+                    [style.backgroundColor]="preset.value"
+                    [class.active]="draftColor.toLowerCase() === preset.value.toLowerCase()"
+                    [title]="preset.name"
+                    (click)="onUserColorPick(preset.value)"
+                ></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ps-modal-footer">
+        <div>
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                *ngIf="canOpenNativeAdvancedModal"
+                (click)="openAdvancedSettings()"
+                title="Otwórz pełne ustawienia powłoki / połączenia w Tabby"
+            >
+                <i class="fas fa-sliders-h me-1"></i> Zaawansowane opcje Tabby...
+            </button>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary" (click)="cancel()">Anuluj</button>
+            <button
+                type="button"
+                class="btn btn-primary"
+                [disabled]="!canSave || saving"
+                (click)="save()"
+            >
+                <i class="fas fa-check me-1"></i>
+                {{ mode === 'create' ? 'Utwórz profil' : 'Zapisz zmiany' }}
+            </button>
+        </div>
+    </div>
+</div>

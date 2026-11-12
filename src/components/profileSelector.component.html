@@ -1,19 +1,255 @@
-<div class="p-3 vw-100 h-100 overflow-auto">
+<div class="ps-viewport">
+    <div class="ps-container">
+        <!-- Header bar -->
+        <div class="ps-topbar" *ngIf="profiles.length > 0">
+            <div class="ps-search-box">
+                <i class="fas fa-search ps-search-icon"></i>
+                <input
+                    #searchInput
+                    type="text"
+                    class="ps-search-input"
+                    placeholder="Szukaj profilu..."
+                    [(ngModel)]="search"
+                    (ngModelChange)="onSearchChange()"
+                    (keydown)="onSearchKeydown($event)"
+                />
+                <button
+                    *ngIf="search"
+                    type="button"
+                    class="ps-search-clear"
+                    (click)="clearSearch()"
+                    title="Wyczyść wyszukiwanie"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-    <div class="mb-4">
-        <input type="text" class="form-control form-control-lg mb-4" placeholder="Search..." [(ngModel)]="search" (ngModelChange)="onSearchChange()" autofocus />
-    </div>
+            <div class="ps-toolbar-actions">
+                <button
+                    *ngIf="config.store.profileSelector?.showBuiltinProfiles"
+                    type="button"
+                    class="ps-md-btn"
+                    (click)="toggleBuiltinVisibility(false)"
+                    title="Ukryj wbudowane profile (Built-in)"
+                >
+                    <i class="fas fa-eye-slash"></i>
+                    <span>Ukryj Built-in</span>
+                </button>
 
-    <div *ngFor="let group of groups" class="mb-4">
-        <h2 class="text-lg font-semibold mb-2">{{ group }}</h2>
-        <div class="d-flex flex-row gap-3 flex-wrap">
-            <a *ngFor="let profile of groupedProfiles[group]" class="selector-card border border rounded-4 p-2 hover:shadow-lg transition-shadow pointer d-flex" [style.borderColor]="profile.borderColor" (click)="selectProfile(profile)" href="javascript:void(0)">
-                <div class="selector-card_icon d-block rounded-3 me-2 d-flex align-items-center justify-content-center" [style.backgroundColor]="profile.color ?? 'var(--theme-primary-more)'" [fastHtmlBind]="profile.iconHtml"></div>
-                <div class="d-flex flex-column">
-                    <span class="selector-card_title h5 mb-0">{{ profile.name }}</span>
-                    <p class="text-xs text-gray-600 mb-0">{{ profile.description }}</p>
+                <button type="button" class="ps-md-btn ps-md-btn--primary" (click)="openCreateProfileModal()">
+                    <i class="fas fa-plus"></i>
+                    <span>Nowy profil</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="ps-md-btn ps-md-btn--icon"
+                    (click)="openPluginSettings()"
+                    title="Ustawienia Profile Selector"
+                >
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Default Empty State (unconfigured plugin) -->
+        <div class="ps-empty-state" *ngIf="loaded && profiles.length === 0">
+            <div class="ps-empty-badge">
+                <i class="fas fa-sliders-h"></i>
+            </div>
+            <h3>Skonfiguruj Profile Selector</h3>
+            <p>
+                Lista profili jest domyślnie pusta, a sekcje wbudowanych profili oraz importów z
+                <code>.ssh/config</code> są ukryte. Utwórz własne profile na podstawie wbudowanych profili lub włącz
+                szybką konfigurację, aby wyświetlić wszystkie wbudowane profile.
+            </p>
+            <div class="ps-empty-actions">
+                <button type="button" class="ps-md-btn ps-md-btn--primary" (click)="openCreateProfileModal()">
+                    <i class="fas fa-plus"></i>
+                    <span>Utwórz pierwszy profil</span>
+                </button>
+                <button type="button" class="ps-md-btn" (click)="enableBuiltinQuickSetup()">
+                    <i class="fas fa-bolt"></i>
+                    <span>Szybka konfiguracja: pokaż Built-in</span>
+                </button>
+                <button type="button" class="ps-md-btn" (click)="openPluginSettings()">
+                    <i class="fas fa-cog"></i>
+                    <span>Ustawienia</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Groups & Material Design Tiles -->
+        <ng-container *ngIf="profiles.length > 0">
+            <div class="ps-no-results" *ngIf="groups.length === 0">
+                <i class="fas fa-search fa-lg mb-2 d-block"></i>
+                <div>Brak profili pasujących do zapytania „{{ search }}”.</div>
+            </div>
+
+            <div *ngFor="let group of groups" class="ps-group-section">
+                <div class="ps-group-header">
+                    <h2 class="ps-group-title">{{ group }}</h2>
+                    <span class="ps-group-count">{{ groupedProfiles[group]?.length || 0 }}</span>
                 </div>
-            </a>
+
+                <div class="ps-cards-grid">
+                    <a
+                        *ngFor="let item of groupedProfiles[group]"
+                        class="ps-card"
+                        href="javascript:void(0)"
+                        [style.--ps-accent]="item.palette.hasCustomColor ? item.palette.accentColor : 'transparent'"
+                        [style.--ps-card-bg]="item.palette.cardBg"
+                        [style.--ps-card-bg-hover]="item.palette.cardBgHover"
+                        [style.--ps-card-border]="item.palette.cardBorder"
+                        [style.--ps-card-border-hover]="item.palette.cardBorderHover"
+                        [style.--ps-icon-bg]="item.palette.iconBg"
+                        [style.--ps-icon-fg]="item.palette.iconFg"
+                        (click)="selectProfile(item.raw)"
+                    >
+                        <div class="ps-card__icon" [fastHtmlBind]="item.iconHtml"></div>
+                        <span class="ps-card__title" [title]="item.name">{{ item.name }}</span>
+                        <button
+                            type="button"
+                            class="ps-card__action"
+                            [title]="item.raw.isBuiltin ? 'Utwórz własny profil na tej bazie' : 'Edytuj profil'"
+                            (click)="onCardAction($event, item)"
+                        >
+                            <i [class]="item.raw.isBuiltin ? 'fas fa-plus' : 'fas fa-pen'"></i>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- System Overview (fastfetch) anchored in the space below profiles -->
+        <div class="ps-fastfetch-section" *ngIf="config.store.profileSelector?.showFastfetch !== false">
+            <!-- Ready state: formatted Material Design output -->
+            <div class="ps-fastfetch-card" *ngIf="fastfetchData?.status === 'ready'">
+                <div class="ps-fastfetch-header">
+                    <div class="ps-fastfetch-header-left">
+                        <span class="ps-fastfetch-label">
+                            <i class="fas fa-microchip"></i>
+                            <span>System · fastfetch</span>
+                        </span>
+                        <span
+                            class="ps-fastfetch-host-pill"
+                            *ngIf="fastfetchData?.titleHtml"
+                            [fastHtmlBind]="fastfetchData?.titleHtml"
+                        ></span>
+                    </div>
+
+                    <div class="ps-fastfetch-controls">
+                        <div class="ps-ff-segmented" *ngIf="fastfetchData?.items?.length">
+                            <button
+                                type="button"
+                                [class.active]="fastfetchViewMode === 'cards'"
+                                (click)="setFastfetchViewMode('cards')"
+                            >
+                                Kafelki
+                            </button>
+                            <button
+                                type="button"
+                                [class.active]="fastfetchViewMode === 'terminal'"
+                                (click)="setFastfetchViewMode('terminal')"
+                            >
+                                Terminal
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            class="ps-ff-icon-btn"
+                            [disabled]="fastfetchLoading"
+                            (click)="refreshFastfetch()"
+                            title="Odśwież dane fastfetch"
+                        >
+                            <i class="fas fa-sync-alt" [class.fa-spin]="fastfetchLoading"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Structured Material Cards layout -->
+                <div
+                    class="ps-fastfetch-body"
+                    *ngIf="fastfetchViewMode === 'cards' && fastfetchData?.items?.length; else rawFastfetchTpl"
+                >
+                    <div class="ps-fastfetch-logo-pane" *ngIf="fastfetchData?.logoHtml || fastfetchData?.paletteColors?.length">
+                        <pre
+                            class="ps-fastfetch-logo"
+                            *ngIf="fastfetchData?.logoHtml"
+                            [fastHtmlBind]="fastfetchData?.logoHtml"
+                        ></pre>
+                        <div class="ps-fastfetch-palette" *ngIf="fastfetchData?.paletteColors?.length">
+                            <span
+                                class="ps-ff-dot"
+                                *ngFor="let c of fastfetchData?.paletteColors"
+                                [style.backgroundColor]="c"
+                            ></span>
+                        </div>
+                    </div>
+
+                    <div class="ps-fastfetch-grid">
+                        <div class="ps-fastfetch-item" *ngFor="let spec of fastfetchData?.items">
+                            <i class="ps-ff-item-icon" [class]="spec.icon"></i>
+                            <span class="ps-ff-item-key">{{ spec.key }}:</span>
+                            <span class="ps-ff-item-val" [fastHtmlBind]="spec.valueHtml"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classic colored terminal layout -->
+                <ng-template #rawFastfetchTpl>
+                    <div class="ps-fastfetch-terminal-wrap">
+                        <pre class="ps-fastfetch-terminal" [fastHtmlBind]="fastfetchData?.rawHtml"></pre>
+                    </div>
+                </ng-template>
+            </div>
+
+            <!-- Missing state: fastfetch not detected -->
+            <div class="ps-fastfetch-missing" *ngIf="fastfetchData?.status === 'missing'">
+                <div class="ps-ff-missing-info">
+                    <div class="ps-ff-missing-icon">
+                        <i class="fas fa-terminal"></i>
+                    </div>
+                    <div>
+                        <div class="ps-ff-missing-title">Nie wykryto programu fastfetch w systemie</div>
+                        <div class="ps-ff-missing-desc">
+                            Zainstaluj <code>fastfetch</code> (np. <code>winget install Fastfetch-cli.Fastfetch</code>),
+                            aby wyświetlać tutaj podsumowanie systemu.
+                        </div>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    class="ps-md-btn"
+                    [disabled]="fastfetchLoading"
+                    (click)="refreshFastfetch()"
+                >
+                    <i class="fas fa-sync-alt" [class.fa-spin]="fastfetchLoading"></i>
+                    <span>Sprawdź ponownie</span>
+                </button>
+            </div>
+
+            <!-- Error state -->
+            <div class="ps-fastfetch-missing" *ngIf="fastfetchData?.status === 'error'">
+                <div class="ps-ff-missing-info">
+                    <div class="ps-ff-missing-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <div class="ps-ff-missing-title">Nie udało się pobrać danych z fastfetch</div>
+                        <div class="ps-ff-missing-desc">{{ fastfetchData?.errorMessage }}</div>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    class="ps-md-btn"
+                    [disabled]="fastfetchLoading"
+                    (click)="refreshFastfetch()"
+                >
+                    <i class="fas fa-sync-alt" [class.fa-spin]="fastfetchLoading"></i>
+                    <span>Spróbuj ponownie</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
